@@ -5,7 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
-
+os
 # Distribution / packaging
 .Python
 build/
@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+leaves.zip
+images/
+
+dataset/
+augmented_directory/
