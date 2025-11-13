@@ -87,7 +87,6 @@ class Augmentation:
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
-        # Fixed the augmentation list to match your method names
         valid_augmentations = ['rotate', 'flip', 'skew', 'blur', 'contrast', 'illuminate']
         if augmentation not in valid_augmentations:
             print(f"Invalid augmentation type: {augmentation}")

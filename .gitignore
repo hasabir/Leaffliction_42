@@ -211,3 +211,5 @@ images/
 
 dataset/
 augmented_directory/
+test/
+transformed_directory/
