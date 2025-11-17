@@ -8,70 +8,97 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 import numpy as np
 from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow import keras
+from keras import  models, layers
+import matplotlib.pyplot as plt
+
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1" # Disable GPU
+BATCH_SIZE = 16
+# BATCH_SIZE = 32
+# IMAGE_SIZE = 128
+IMAGE_SIZE = 256
+CHANNELS=3
+EPOCHS=30
+
+def get_dataset_partitions_tf(ds, train_split=0.8, val_split=0.1, test_split=0.1, shuffle=True, shuffle_size=10000):
+    assert (train_split + test_split + val_split) == 1
+    
+    ds_size = len(ds)
+    
+    if shuffle:
+        ds = ds.shuffle(shuffle_size, seed=12)
+    
+    train_size = int(train_split * ds_size)
+    val_size = int(val_split * ds_size)
+    
+    train_ds = ds.take(train_size)    
+    val_ds = ds.skip(train_size).take(val_size)
+    test_ds = ds.skip(train_size).skip(val_size)
+    
+    return train_ds, val_ds, test_ds
+
 
 
 def train(data_dir):
-    img2vec = Img2Vec()
-
-
-
-    data = {}
-    # collect all image features and labels from data_dir, then split into train/val
-    features = []
-    labels = []
+    dataset = tf.keras.preprocessing.image_dataset_from_directory(
+        data_dir,
+        seed=123,
+        shuffle=True,
+        image_size=(IMAGE_SIZE, IMAGE_SIZE),
+        batch_size=BATCH_SIZE)
     
-    for category in os.listdir(data_dir):
-        cat_dir = os.path.join(data_dir, category)
-        if not os.path.isdir(cat_dir):
-            continue
-        for img_name in os.listdir(cat_dir):
-            img_path = os.path.join(cat_dir, img_name)
-            try:
-                with Image.open(img_path) as img:
-                    img = img.convert("RGB")
-                    vec = img2vec.get_vec(img)
-                features.append(vec)
-                labels.append(category)
-                print(f"label: {category}")
-            except Exception as e:
-                print(f"Skipping {img_path}: {e}")
-
-
-    if len(features) == 0:
-        print("No images found in", data_dir)
-        data['training_data'] = np.array([])
-        data['training_labels'] = np.array([])
-        data['validation_data'] = np.array([])
-        data['validation_labels'] = np.array([])
-    else:
-        strat = labels if len(set(labels)) > 1 else None
-        X_train, X_val, y_train, y_val = train_test_split(
-            features, labels, test_size=0.2, random_state=42, stratify=strat
-        )
-        data['training_data'] = X_train
-        data['training_labels'] = y_train
-        data['validation_data'] = X_val
-        data['validation_labels'] = y_val
-
-    # # train model
-
-    model = RandomForestClassifier(random_state=0)
+    class_names = dataset.class_names
+    train_dataset, val_dataset, test_dataset = get_dataset_partitions_tf(dataset)
     
-    model.fit(data['training_data'], data['training_labels'])
-
-
-    # test performance
-    y_pred = model.predict(data['validation_data'])
-    score = accuracy_score(y_pred, data['validation_labels'])
-
-    print(score)
-
-    # # save the model
-    with open('./model.p', 'wb') as f:
-        pickle.dump(model, f)
-        f.close()
-        
+    # FIX: Remove BATCH_SIZE from input_shape - it should only have (height, width, channels)
+    input_shape = (IMAGE_SIZE, IMAGE_SIZE, CHANNELS)
     
+    resize_and_rescale = tf.keras.Sequential([
+        layers.Rescaling(1.0 / 255),  # Resizing is already done by image_dataset_from_directory
+    ])
+    
+    n_classes = len(class_names)
+    
+    model = models.Sequential([
+        resize_and_rescale,
+        layers.Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=input_shape),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation='relu'),
+        layers.MaxPooling2D((2, 2)),
+        layers.Flatten(),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(n_classes, activation='softmax'),
+    ])
+    
+    # FIX: Use None for batch dimension when building
+    model.build(input_shape=(None, IMAGE_SIZE, IMAGE_SIZE, CHANNELS))
+    
+    model.compile(
+        optimizer='adam',
+        loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+        metrics=['accuracy']
+    )
+    
+    history = model.fit(
+        train_dataset,
+        # Remove batch_size here - it's already batched in the dataset
+        validation_data=val_dataset,
+        verbose=1,
+        epochs=EPOCHS,  # Use the EPOCHS constant you defined
+    )
+    return history
+
+
 def main():
     if len(sys.argv) != 2:
         print("Usage: python train.py <data_directory>")
