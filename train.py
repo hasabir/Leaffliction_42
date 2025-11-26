@@ -59,6 +59,18 @@ def train(data_dir):
         layers.Rescaling(1.0 / 255),  # Resizing is already done by image_dataset_from_directory
     ])
     
+    train_size = train_dataset.cardinality().numpy() * BATCH_SIZE
+    val_size = val_dataset.cardinality().numpy() * BATCH_SIZE
+    test_size = test_dataset.cardinality().numpy() * BATCH_SIZE
+
+    print(f"Training set: {train_size} images")
+    print(f"Validation set: {val_size} images")
+    print(f"Test set: {test_size} images")
+
+    if val_size < 100:
+        print(f"WARNING: Validation set has only {val_size} images!")
+        print("Project requires minimum 100 images")
+    
     n_classes = len(class_names)
     
     model = models.Sequential([
@@ -96,6 +108,37 @@ def train(data_dir):
         verbose=1,
         epochs=EPOCHS,  # Use the EPOCHS constant you defined
     )
+    
+    # After training, add:
+    model.save('plant_disease_model.h5')
+    print("Model saved!")
+
+    # Also save class names for predict.py
+    import json
+    with open('class_names.json', 'w') as f:
+        json.dump(class_names, f)
+    
+    
+    import zipfile
+
+    # Create ZIP with model and dataset
+    with zipfile.ZipFile('leaffliction_package.zip', 'w') as zipf:
+        zipf.write('plant_disease_model.h5')
+        zipf.write('class_names.json')
+    
+    
+    # Evaluate on validation set
+    val_loss, val_accuracy = model.evaluate(val_dataset, verbose=0)
+
+    print("\n" + "="*50)
+    print(f"FINAL VALIDATION ACCURACY: {val_accuracy * 100:.2f}%")
+    print("="*50)
+
+    if val_accuracy >= 0.90:
+        print("✅ SUCCESS! Achieved 90%+ accuracy!")
+    else:
+        print(f"⚠️ WARNING: Below 90% ({val_accuracy*100:.2f}%)")
+    
     return history
 
 
