@@ -96,6 +96,13 @@ class Augmentation:
         base_name = os.path.splitext(base_file_path)[0]
         base_name = base_name.split("/")[1:]
         base_name = "/".join(base_name)
+        
+        
+        #         # Get the base name without extension and preserve directory structure
+        # base_name = os.path.splitext(base_file_path)[0]
+        # base_name = base_name.split("/")[-2:]
+        # base_name = "/".join(base_name)
+        # # base_name = base_file_path.lstrip("./")  # remove leading ./
 
         # Create the output directory structure if it doesn't exist
         output_path_dir = os.path.dirname(os.path.join(output_dir, base_name))
