@@ -1,28 +1,21 @@
 #!/usr/bin/env python3
 
-import os
 import sys
-from PIL import Image
 import cv2
 import imutils
 import numpy as np
-from skimage import io
 from skimage import transform as tf
 
-
-import cv2
-import sys
-import numpy as np
-from skimage import io, transform as tf
-import imutils
 
 class Augmentation:
     def __init__(self, image_path):
         self.image_path = image_path
         self.img = cv2.imread(self.image_path)
+
         if self.img is None:
-            raise ValueError(f"Image not found or unable to load: {image_path}")
-        
+            raise ValueError(
+                f"Image not found or unable to load: {image_path}")
+
         # Initialize augmented images as None
         self.rotated = None
         self.flipped = None
@@ -30,7 +23,7 @@ class Augmentation:
         self.blurred = None
         self.contrasted = None
         self.illuminated = None
-    
+
     def rotate(self, angle=45):
         """Rotate image by specified angle"""
         self.rotated = imutils.rotate(self.img, angle)
