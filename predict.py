@@ -17,10 +17,6 @@ from Transformation import Transformation
 
 
 
-
-
-
-
 print("=" * 60 + "\n")
 
 def get_files():
@@ -31,17 +27,16 @@ def get_files():
         if os.path.isdir(model_packege_path):
             model_path = os.path.join(model_packege_path, "plant_disease_model.h5")
             class_names_path = os.path.join(model_packege_path, "class_names.json")
+        elif os.path.isfile(model_packege_path) and model_packege_path.endswith(".zip"):
+            with zipfile.ZipFile(model_packege_path, 'r') as zip_ref:
+                zip_ref.extractall(os.path.dirname(model_packege_path))
+            model_path = os.path.join(os.path.dirname(model_packege_path), "plant_disease_model.h5")
+            class_names_path = os.path.join(os.path.dirname(model_packege_path), "class_names.json")
+    
     elif os.path.exists("apple_plant_disease_model_pakege"):
+        print("Using default model package: apple_plant_disease_model_pakege")
         model_path = os.path.join("apple_plant_disease_model_pakege", "plant_disease_model.h5")
         class_names_path = os.path.join("apple_plant_disease_model_pakege", "class_names.json")
-    #if model path is a zip file
-    elif os.path.isfile(model_packege_path) and model_packege_path.endswith(".zip"):
-        with zipfile.ZipFile(model_packege_path, 'r') as zip_ref:
-            zip_ref.extractall("temp_model_packege")
-        model_path = os.path.join("temp_model_packege", "plant_disease_model.h5")
-        class_names_path = os.path.join("temp_model_packege", "class_names.json")
-    if os.path.exists(model_path) and os.path.exists(class_names_path):
-        print(f"Using model package from: {os.path.dirname(model_path)}")
     else:
         print(f"ERROR: Specified model package path is invalid: {model_packege_path}")
         sys.exit(1)

@@ -21,7 +21,7 @@ class Train():
         self.BATCH_SIZE = 32
         self.IMAGE_SIZE = 256
         self.CHANNELS = 3
-        self.EPOCHS = 10
+        self.EPOCHS = 3
         
         self.class_names = None
         self.dataset = None
@@ -47,9 +47,10 @@ class Train():
 
     def train(self):
         train_ds, val_ds = self._split_dataset()
+        
         augmented_train_ds = self._augment_dataset(
             os.path.join(os.path.dirname(self.output_dir),\
-                "aungmented_train_ds") , train_ds)
+                "train_ds") , train_ds)
         
         augmented_train_ds = augmented_train_ds.cache().shuffle(1000).prefetch(
             buffer_size=tf.data.AUTOTUNE)
@@ -176,11 +177,11 @@ class Train():
         return train_ds, val_ds
 
 
-    def _augment_dataset(self, target_dir, train_ds):
+    def _augment_dataset(self, target_dir_path, train_ds):
 
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-        os.makedirs(target_dir, exist_ok=True)
+        if os.path.exists(target_dir_path):
+            shutil.rmtree(target_dir_path)
+        os.makedirs(target_dir_path, exist_ok=True)
         counters = {name: 0 for name in self.class_names}
 
 
@@ -188,7 +189,7 @@ class Train():
         for batch_images, batch_labels in train_ds:
             for img, lbl in zip(batch_images, batch_labels):
                 cls = self.class_names[int(lbl.numpy())]
-                cls_dir = os.path.join(target_dir, cls)
+                cls_dir = os.path.join(target_dir_path, cls)
                 os.makedirs(cls_dir, exist_ok=True)
                 
                 fname = f"{cls}_{counters[cls]:05d}.jpg"
@@ -197,19 +198,26 @@ class Train():
                 save_img(save_path, img.numpy())
                 counters[cls] += 1
 
-        print("Saved training images to:", target_dir)
+        print("Saved training images to:", target_dir_path)
         print("Per-class counts:", counters)
 
         #! Step 4: Augment ONLY the training folder
+        augmented_dir = os.path.join(self.output_dir, "augmented_train_directory")
         
-        augmented_zip_file_path = augment_dataset(directory_path=target_dir, output_dir="augmented_train_directory")
+        # print(f"output_dir: {self.output_dir}, augmented_dir: {augmented_dir}")
+        # import sys
+        # sys.exit(1)
+        augment_dataset(directory_path=target_dir_path, output_dir=augmented_dir)
 
+        #remove target_dir_path
+        shutil.rmtree(target_dir_path)
+        
         # with zipfile.ZipFile(augmented_zip_file_path, 'r') as zip_ref:
         #     zip_ref.extractall('augmented_train_directory')
 
         # Step 5: Load augmented training data
         augmented_train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-            "augmented_train_directory",
+            augmented_dir,
             seed=123,
             shuffle=True,
             image_size=(self.IMAGE_SIZE, self.IMAGE_SIZE),
