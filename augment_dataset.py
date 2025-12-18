@@ -92,21 +92,21 @@ def augment_dataset(directory_path, output_dir="augmented_directory"):
             image_index += 1
         
         print(f"Completed {image_type}: Created {base_length - current_length} augmented images\n")
-    try:
-        import zipfile
-        print("Creating zip archive...")
-        zip_filename = f"{output_dir}.zip"
-        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            for root, dirs, files in os.walk(output_dir):
-                for file in files:
-                    file_path = os.path.join(root, file)
-                    arcname = os.path.relpath(file_path, start=output_dir)
-                    zipf.write(file_path, arcname)
-        print(f"Created zip archive: {zip_filename}")
-        return zip_filename 
-    except Exception as e:
-        print("zipfile module not found, cannot create zip archive.")
-        return output_dir
+    # return output_dir
+    # try:
+    #     import zipfile
+    #     print("Creating zip archive...")
+    #     zip_filename = f"{output_dir}.zip"
+    #     with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    #         for root, dirs, files in os.walk(output_dir):
+    #             for file in files:
+    #                 file_path = os.path.join(root, file)
+    #                 arcname = os.path.relpath(file_path, start=output_dir)
+    #                 zipf.write(file_path, arcname)
+    #     print(f"Created zip archive: {zip_filename}")
+    #     return zip_filename 
+    # except Exception as e:
+    #     print("zipfile module not found, cannot create zip archive.")
 
 
 if __name__ == "__main__":
