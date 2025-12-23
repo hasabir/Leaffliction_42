@@ -24,23 +24,25 @@ class Augmentation:
         self.contrasted = None
         self.illuminated = None
 
+
     def rotate(self, angle=45):
         """Rotate image by specified angle"""
         self.rotated = imutils.rotate(self.img, angle)
         return self.rotated
-    
+
+
     def flip(self, direction='vertical'):
         """Flip image horizontally or vertically"""
         if direction not in ['horizontal', 'vertical']:
             raise ValueError("Direction must be 'horizontal' or 'vertical'.")
-        
+
         # Use self.img instead of reloading the image
         if direction == 'horizontal':
             self.flipped = cv2.flip(self.img, 1)
         else:
             self.flipped = cv2.flip(self.img, 0)
-        
         return self.flipped
+
 
     def skew(self, factor=0.2):
         """Apply skew transformation to image"""
@@ -55,16 +57,19 @@ class Augmentation:
         self.skewed = cv2.cvtColor(self.skewed, cv2.COLOR_RGB2BGR)
         
         return self.skewed
-    
+
+
     def blur(self, ksize=(15, 15)):
         """Apply Gaussian blur to image"""
         self.blurred = cv2.GaussianBlur(self.img, ksize, 0)
         return self.blurred
-    
+
+
     def contrast(self, alpha=1.5, beta=0):
         """Adjust image contrast and brightness"""
         self.contrasted = cv2.convertScaleAbs(self.img, alpha=alpha, beta=beta)
         return self.contrasted
+
 
     def illuminate(self, gamma=2.5):
         """Adjust image illumination using gamma correction"""
@@ -72,7 +77,7 @@ class Augmentation:
         table = np.array([((i / 255.0) ** invGamma) * 255 for i in np.arange(0, 256)]).astype("uint8")
         self.illuminated = cv2.LUT(self.img, table)
         return self.illuminated
-    
+
 
     def save_augmented_images(self, augmentation, base_file_path, output_dir="."):
         """Save augmented images to files"""
@@ -87,10 +92,11 @@ class Augmentation:
         
         # Get the base name without extension and preserve directory structure
         base_name = os.path.splitext(base_file_path)[0]
-        base_name = base_name.split("/")[1:]
+        base_name = base_name.split("/")[-2:]
         base_name = "/".join(base_name)
-        
-        
+        # print(f"-------------------------> Base name for saving: {base_name}")
+
+
         #         # Get the base name without extension and preserve directory structure
         # base_name = os.path.splitext(base_file_path)[0]
         # base_name = base_name.split("/")[-2:]
@@ -101,13 +107,13 @@ class Augmentation:
         output_path_dir = os.path.dirname(os.path.join(output_dir, base_name))
         if not os.path.exists(output_path_dir):
             os.makedirs(output_path_dir)
-        
+
         # Save the appropriate augmented image
         if self.rotated is not None and augmentation == 'rotate':
             output_path = f"{output_dir}/{base_name}_Rotate.jpg"
             print(f"Writing rotated image to {output_path}")
             cv2.imwrite(output_path, self.rotated)
-        
+
         elif self.flipped is not None and augmentation == 'flip':
             output_path = f"{output_dir}/{base_name}_Flip.jpg"
             print(f"Writing rotated image to {output_path}")
@@ -125,24 +131,23 @@ class Augmentation:
             print(f"Writing rotated image to {output_path}")
             
             cv2.imwrite(output_path, self.blurred)
-        
+
         elif self.contrasted is not None and augmentation == 'contrast':
             output_path = f"{output_dir}/{base_name}_Contrast.jpg"
             print(f"Writing rotated image to {output_path}")
             
             cv2.imwrite(output_path, self.contrasted)
-        
+
         elif self.illuminated is not None and augmentation == 'illuminate':
             output_path = f"{output_dir}/{base_name}_Illuminate.jpg"
             print(f"Writing rotated image to {output_path}")
             
             cv2.imwrite(output_path, self.illuminated)
-        
+
         else:
             print(f"Warning: No {augmentation} augmentation found for {base_file_path}")
+        return
 
-    
-    
 
     def show_images(self, target_height=300):
         """Display original and augmented images"""
@@ -168,22 +173,22 @@ class Augmentation:
         blured = imutils.resize(self.blurred, height=target_height)
         contrasted = imutils.resize(self.contrasted, height=target_height)
         illuminated = imutils.resize(self.illuminated, height=target_height)
-        
+
         # Create montage
         montage = cv2.hconcat([orig, rotated, fliped, skewed, blured, contrasted, illuminated])
-        
+
         # Display
         cv2.imshow("Original | Rotated 45 | Flipped | Skewed | Blured | Contrasted | Illuminated", montage)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
-        
+        return
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print("Usage: python Augmentation.py <image_path>")
         sys.exit(1)
-    
+
     image_path = sys.argv[1]
     augmenter = Augmentation(image_path)
     augmenter.show_images()
