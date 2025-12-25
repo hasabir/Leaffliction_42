@@ -26,7 +26,6 @@ class Distribution:
         print(f"Labels: {labels}, Sizes: {sizes}, Counts: {counte}")
         return labels, sizes, counte
 
-
     def bar_chart(self, image_list):
 
         labels, sizes, count = self.get_lables(image_list)
@@ -38,7 +37,6 @@ class Distribution:
         plt.tight_layout()
         plt.show()
 
-
     def pie_chart(self, image_list):
 
         labels, sizes, _ = self.get_lables(image_list)
@@ -49,10 +47,10 @@ class Distribution:
         plt.title('Image File Type Distribution')
         plt.show()
 
-
     def fetch_images(self, directory_path, file_list):
         if not os.path.exists(directory_path):
-            raise FileNotFoundError(f"The directory {directory_path} does not exist.")
+            raise FileNotFoundError(
+                f"The directory {directory_path} does not exist.")
         for item_name in os.listdir(directory_path):
             full_path = os.path.join(directory_path, item_name)
             if os.path.isfile(full_path):

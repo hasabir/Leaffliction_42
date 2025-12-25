@@ -1,13 +1,16 @@
-
 from Distribution import Distribution
 from Augmentation import Augmentation
 import sys
 import os
 import shutil
+
+
 def sort_images_by_type(directory_path):
+    '''    Sort images in the directory by their
+    immediate parent folder (category).'''
     sorted_dict = {}
     image_exts = {'.jpg', '.jpeg', '.png', '.bmp', '.tif', '.tiff', '.gif'}
-    
+
     for root, dirs, files in os.walk(directory_path):
         for name in files:
             _, ext = os.path.splitext(name)
@@ -27,47 +30,52 @@ def sort_images_by_type(directory_path):
 
 
 def augment_dataset(directory_path, output_dir="augmented_directory"):
-    
+    '''    Augment the dataset in directory_path
+    so that each image type has the same number of images.'''
     directory_path = directory_path.strip("./")
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    
+
     image_by_type = sort_images_by_type(directory_path)
     base_length = max([len(images) for images in image_by_type.values()])
-    augmentation_list = ['rotate', 'flip', 'skew', 'blur', 'contrast', 'illuminate']
-    
-    
+    augmentation_list = ['rotate', 'flip',
+                         'skew', 'blur',
+                         'contrast', 'illuminate']
+
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir)
 
     # copy original images to output_dir
     shutil.copytree(directory_path, output_dir, dirs_exist_ok=True)
-    
+
     for image_type, images in image_by_type.items():
         current_length = len(images)
         augmentations_needed = base_length - current_length
-        
-        print(f"Processing {image_type}: Has {current_length} images, needs {augmentations_needed} more to reach {base_length}")
-        
+
+        print(f"Processing {image_type}: Has {current_length} images, \
+            needs {augmentations_needed} more to reach {base_length}")
+
         if augmentations_needed <= 0:
             print(f"{image_type} already has enough images. Skipping.")
             continue
-        
+
         augmentor_index = 0
         image_index = 0
-        
+
         # Loop through images until we create enough augmentations
         while augmentations_needed > 0 and image_index < len(images):
             image = images[image_index]
             augmentor = Augmentation(image)
-            print(f"  Processing image {image_index + 1}/{len(images)}: {image}")
-            
-            # Apply augmentations to this image until we've created enough OR cycled through all 6
+            print(f"Processing image {image_index + 1}/{len(images)}: {image}")
+
+            # Apply augmentations to this image until we've created enough
+            # OR cycled through all 6
             augmentations_applied = 0
-            while augmentations_needed > 0 and augmentations_applied < len(augmentation_list):
+            while augmentations_needed > 0\
+                    and augmentations_applied < len(augmentation_list):
                 augmentation = augmentation_list[augmentor_index]
-                
+
                 # Apply the augmentation
                 if augmentation == "rotate":
                     augmentor.rotate()
@@ -81,32 +89,31 @@ def augment_dataset(directory_path, output_dir="augmented_directory"):
                     augmentor.contrast()
                 elif augmentation == 'illuminate':
                     augmentor.illuminate()
-                
+
                 # Save the augmented image
-                # print(f"Applying augmentation: {augmentation}, base image: {image}, output_dir: {output_dir}")
-                augmentor.save_augmented_images(augmentation, base_file_path=image, output_dir=output_dir)
-                # sys.exit(0)
-                
+                augmentor.save_augmented_images(augmentation,
+                                                base_file_path=image,
+                                                output_dir=output_dir)
+
                 augmentations_needed -= 1
                 augmentations_applied += 1
-                augmentor_index = (augmentor_index + 1) % len(augmentation_list)
-            
-            image_index += 1
-        
-        print(f"Completed {image_type}: Created {base_length - current_length} augmented images\n")
+                augmentor_index = (augmentor_index + 1)\
+                    % len(augmentation_list)
 
+            image_index += 1
+        print("Completed", image_type,  ":", end=' ')
+        print("Created ", base_length - current_length, " augmented images\n")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2 :
+    if len(sys.argv) < 2:
         print("Usage: python augment_dataset.py <directory_path>")
         sys.exit(1)
     directory_path = sys.argv[1]
     distribution = Distribution(directory_path)
-    if len(sys.argv) >=3:
+    if len(sys.argv) >= 3:
         output_dir = sys.argv[2]
     else:
         output_dir = "augmented_directory"
 
-    augment_dataset(directory_path, output_dir)    
-    
+    augment_dataset(directory_path, output_dir)
