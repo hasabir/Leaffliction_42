@@ -1,0 +1,1 @@
+Validation Accuracy: 78.12%
