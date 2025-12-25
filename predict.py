@@ -1,18 +1,14 @@
 import os
-import warnings
 import sys
 import json
 import zipfile
 import numpy as np
-import tensorflow as tf
 from PIL import Image
 import matplotlib.pyplot as plt
+import tf_config  # noqa: F401
+import tensorflow as tf
 from Transformation import Transformation
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-warnings.filterwarnings("ignore")
 
 print("\n" + "=" * 60 + "\n")
 

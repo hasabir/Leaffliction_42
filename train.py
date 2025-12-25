@@ -1,4 +1,5 @@
 import os
+import tf_config  # noqa: F401
 import tensorflow as tf
 from augment_dataset import augment_dataset
 import shutil
@@ -8,19 +9,13 @@ import keras
 from keras import layers, models
 
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
-os.environ["TF_GPU_ALLOCATOR"] = "cuda_malloc_async"
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-
-
 class Train():
     def __init__(self, dataset_path="./dataset/Apples",
                  output_dir="./model_packege"):
         self.BATCH_SIZE = 32
         self.IMAGE_SIZE = 256
         self.CHANNELS = 3
-        self.EPOCHS = 30
+        self.EPOCHS = 3
 
         self.class_names = None
         self.dataset = None
