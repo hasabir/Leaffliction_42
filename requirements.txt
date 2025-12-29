@@ -6,3 +6,4 @@ img2vec_pytorch
 pillow
 matplotlib
 seaborn
+tensorflow

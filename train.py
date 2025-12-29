@@ -15,7 +15,7 @@ class Train():
         self.BATCH_SIZE = 32
         self.IMAGE_SIZE = 256
         self.CHANNELS = 3
-        self.EPOCHS = 3
+        self.EPOCHS = 30
 
         self.class_names = None
         self.dataset = None
